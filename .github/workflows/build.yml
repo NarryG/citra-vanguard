@@ -1,0 +1,38 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+    # RTCV
+    - name: Checkout RTCV peer dependency
+      uses: actions/checkout@v2
+      with:
+        repository: 'redscientistlabs/RTCV'
+        ref: '506'
+        path: 'RTCV'
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Restore Nuget packages in RTCV
+      run: msbuild /t:restore '.\RTCV\'
+    - name: Build RTCV
+      run: msbuild '.\RTCV\RTCV.sln'
+
+    # citra
+    - name: Checkout current build target
+      uses: actions/checkout@v2
+      with:
+        path: 'citra-vanguard'
+        submodules: 'recursive'
+    - name: Create Citra build directory
+      working-directory: ${{runner.workspace}}\citra-vanguard\citra-vanguard
+      run: New-Item -ItemType Directory -Path build
+    - name: Citra prebuild
+      run: |
+        cd citra-vanguard\build
+        cmake .. -DCITRA_DONT_BUILD_DEDICATED_ROOM=true -DCITRA_DONT_BUILD_TESTS=true -DENABLE_SDL2=false -DCITRA_USE_BUNDLED_QT=1
+    - name: Citra build
+      run: |
+        cd citra-vanguard\build
+        msbuild citra.sln
