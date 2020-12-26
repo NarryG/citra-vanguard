@@ -35,8 +35,6 @@ if (MSVC)
     add_compile_options(
         /W3
         /MP
-        /Zi
-        /Zo
         /permissive-
         /EHsc
         /volatile:iso
@@ -48,6 +46,15 @@ if (MSVC)
         /external:anglebrackets
         /external:W0
     )
+
+    # Since MSVC's debugging information is not very deterministic, so we have to disable it
+    # when using ccache or other caching tools
+    if (NOT USE_CCACHE)
+        add_compile_options(
+            /Zi
+            /Zo
+        )
+    endif()
 
     # /GS- - No stack buffer overflow checks
     add_compile_options("$<$<CONFIG:Release>:/GS->")
@@ -96,12 +103,16 @@ else()
 endif()
 
 add_subdirectory(common)
+add_subdirectory(vanguard)
+add_subdirectory(vanguardwrapper)
 add_subdirectory(core)
 add_subdirectory(video_core)
 add_subdirectory(audio_core)
 add_subdirectory(network)
 add_subdirectory(input_common)
-add_subdirectory(tests)
+if (NOT CITRA_DONT_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 if (ENABLE_SDL2)
     add_subdirectory(citra)
@@ -112,7 +123,7 @@ if (ENABLE_QT)
 endif()
 if (ANDROID)
     add_subdirectory(android/app/src/main/cpp)
-else()
+elseif(NOT CITRA_DONT_BUILD_DEDICATED_ROOM)
     add_subdirectory(dedicated_room)
 endif()
 

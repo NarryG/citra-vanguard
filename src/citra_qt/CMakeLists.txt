@@ -166,6 +166,8 @@ add_executable(citra-qt
     util/util.h
 )
 
+SET_TARGET_PROPERTIES(citra-qt PROPERTIES LINK_FLAGS "/CLRTHREADATTRIBUTE:STA")
+
 if (ENABLE_FFMPEG_VIDEO_DUMPER)
     target_sources(citra-qt PRIVATE
         dumping/dumping_dialog.cpp
@@ -223,8 +225,8 @@ target_sources(citra-qt
     PRIVATE
         ${COMPAT_LIST}
         ${ICONS}
-        ${THEMES}
         ${LANGUAGES}
+        ${THEMES}
 )
 
 if (APPLE)
@@ -245,8 +247,8 @@ endif()
 
 create_target_directory_groups(citra-qt)
 
-target_link_libraries(citra-qt PRIVATE audio_core common core input_common network video_core)
-target_link_libraries(citra-qt PRIVATE Boost::boost glad nihstro-headers Qt5::Widgets Qt5::Multimedia)
+target_link_libraries(citra-qt PRIVATE audio_core common core input_common network video_core vanguard vanguardwrapper)
+target_link_libraries(citra-qt PRIVATE Boost::boost glad nihstro-headers Qt5::OpenGL Qt5::Widgets Qt5::Multimedia)
 target_link_libraries(citra-qt PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 target_compile_definitions(citra-qt PRIVATE

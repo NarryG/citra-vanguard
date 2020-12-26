@@ -76,6 +76,7 @@ public:
     /// Enumeration representing the return values of the System Initialize and Load process.
     enum class ResultStatus : u32 {
         Success,                    ///< Succeeded
+        Success_Pause,                    ///< VANGUARD_HIJACK
         ErrorNotInitialized,        ///< Error trying to use core prior to initialization
         ErrorGetLoader,             ///< Error finding the correct application loader
         ErrorSystemMode,            ///< Error determining the system mode
@@ -120,7 +121,7 @@ public:
     /// Shutdown and then load again
     void Reset();
 
-    enum class Signal : u32 { None, Shutdown, Reset, Save, Load };
+    enum class Signal : u32 { None, Shutdown, Reset, Save, Load, LoadVanguard };
 
     bool SendSignal(Signal signal, u32 param = 0);
 
@@ -307,6 +308,8 @@ public:
     void SaveState(u32 slot) const;
 
     void LoadState(u32 slot);
+    void SaveState(std::string path) const;
+    void LoadState(std::string path);
 
 private:
     /**

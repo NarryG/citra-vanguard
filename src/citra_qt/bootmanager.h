@@ -27,6 +27,7 @@ namespace VideoCore {
 enum class LoadCallbackStage;
 }
 
+
 class GLContext : public Frontend::GraphicsContext {
 public:
     explicit GLContext(QOpenGLContext* shared_context);
@@ -198,6 +199,9 @@ signals:
      * Emitted when the guest first calls SwapBuffers. This is used to hide the loading screen
      */
     void FirstFrameDisplayed();
+
+    /// Emitted on mouse activity. Used to signal that the mouse should be shown if it's hidden
+    void MouseActivity();
 
 private:
     std::pair<u32, u32> ScaleTouch(QPointF pos) const;

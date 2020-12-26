@@ -228,7 +228,8 @@ static constexpr int SettingsToSlider(int value) {
     return (value - 5) / 5;
 }
 
-ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureSystem) {
+ConfigureSystem::ConfigureSystem(QWidget* parent)
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureSystem>()) {
     ui->setupUi(this);
     connect(ui->combo_birthmonth,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
@@ -260,7 +261,8 @@ ConfigureSystem::~ConfigureSystem() = default;
 void ConfigureSystem::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();
 
-    ui->combo_init_clock->setCurrentIndex(static_cast<u8>(Settings::values.init_clock));
+    //Vanguard_Hiajck - override init_clock
+    ui->combo_init_clock->setCurrentIndex(static_cast<u8>(Settings::InitClock::FixedTime));
     QDateTime date_time;
     date_time.setTime_t(Settings::values.init_time);
     ui->edit_init_time->setDateTime(date_time);
@@ -377,8 +379,9 @@ void ConfigureSystem::ApplyConfiguration() {
             cfg->UpdateConfigNANDSavegame();
         }
 
+        //Vanguard-Hijack - Fixedtime
         Settings::values.init_clock =
-            static_cast<Settings::InitClock>(ui->combo_init_clock->currentIndex());
+            static_cast<Settings::InitClock>(Settings::InitClock::FixedTime);
         Settings::values.init_time = ui->edit_init_time->dateTime().toTime_t();
 
         Settings::values.is_new_3ds = ui->toggle_new_3ds->isChecked();

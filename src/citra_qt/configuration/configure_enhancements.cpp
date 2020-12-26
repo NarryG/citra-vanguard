@@ -11,7 +11,7 @@
 #include "video_core/renderer_opengl/texture_filters/texture_filterer.h"
 
 ConfigureEnhancements::ConfigureEnhancements(QWidget* parent)
-    : QWidget(parent), ui(new Ui::ConfigureEnhancements) {
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureEnhancements>()) {
     ui->setupUi(this);
 
     for (const auto& filter : OpenGL::TextureFilterer::GetFilterNames())
@@ -47,8 +47,6 @@ ConfigureEnhancements::ConfigureEnhancements(QWidget* parent)
         if (!ui->toggle_preload_textures->isEnabled())
             ui->toggle_preload_textures->setChecked(false);
     });
-
-    ui->toggle_disk_shader_cache->setEnabled(Settings::values.use_hw_shader);
 }
 
 void ConfigureEnhancements::SetConfiguration() {
@@ -66,8 +64,6 @@ void ConfigureEnhancements::SetConfiguration() {
     }
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
-    ui->toggle_disk_shader_cache->setChecked(Settings::values.use_hw_shader &&
-                                             Settings::values.use_disk_shader_cache);
     ui->upright_screen->setChecked(Settings::values.upright_screen);
     ui->toggle_dump_textures->setChecked(Settings::values.dump_textures);
     ui->toggle_custom_textures->setChecked(Settings::values.custom_textures);
@@ -85,7 +81,8 @@ void ConfigureEnhancements::updateShaders(Settings::StereoRenderOption stereo_op
 
     if (stereo_option == Settings::StereoRenderOption::Anaglyph)
         ui->shader_combobox->addItem(QStringLiteral("dubois (builtin)"));
-    else if (stereo_option == Settings::StereoRenderOption::Interlaced)
+    else if (stereo_option == Settings::StereoRenderOption::Interlaced ||
+             stereo_option == Settings::StereoRenderOption::ReverseInterlaced)
         ui->shader_combobox->addItem(QStringLiteral("horizontal (builtin)"));
     else
         ui->shader_combobox->addItem(QStringLiteral("none (builtin)"));
@@ -117,8 +114,6 @@ void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.layout_option =
         static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
     Settings::values.swap_screen = ui->swap_screen->isChecked();
-    Settings::values.use_disk_shader_cache =
-        Settings::values.use_hw_shader && ui->toggle_disk_shader_cache->isChecked();
     Settings::values.upright_screen = ui->upright_screen->isChecked();
     Settings::values.dump_textures = ui->toggle_dump_textures->isChecked();
     Settings::values.custom_textures = ui->toggle_custom_textures->isChecked();
@@ -128,6 +123,4 @@ void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
 }
 
-ConfigureEnhancements::~ConfigureEnhancements() {
-    delete ui;
-}
+ConfigureEnhancements::~ConfigureEnhancements() {}

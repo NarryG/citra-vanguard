@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/service/cam/cam.h"
+#include "core/hle/service/cam/cam_params.h"
 
 namespace Settings {
 
@@ -32,7 +32,7 @@ enum class MicInputType {
     Static,
 };
 
-enum class StereoRenderOption { Off, SideBySide, Anaglyph, Interlaced };
+enum class StereoRenderOption { Off, SideBySide, Anaglyph, Interlaced, ReverseInterlaced };
 
 namespace NativeButton {
 enum Values {

@@ -68,17 +68,17 @@ const std::array<UISettings::Shortcut, 23> default_hotkeys{
      {QStringLiteral("Increase Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("+"), Qt::ApplicationShortcut}},
      {QStringLiteral("Load Amiibo"),              QStringLiteral("Main Window"), {QStringLiteral("F2"), Qt::ApplicationShortcut}},
      {QStringLiteral("Load File"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+O"), Qt::WindowShortcut}},
+     {QStringLiteral("Load from Newest Slot"),    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+V"), Qt::WindowShortcut}},
      {QStringLiteral("Remove Amiibo"),            QStringLiteral("Main Window"), {QStringLiteral("F3"), Qt::ApplicationShortcut}},
      {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
      {QStringLiteral("Rotate Screens Upright"),   QStringLiteral("Main Window"), {QStringLiteral("F8"), Qt::WindowShortcut}},
+     {QStringLiteral("Save to Oldest Slot"),      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+C"), Qt::WindowShortcut}},
      {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
      {QStringLiteral("Swap Screens"),             QStringLiteral("Main Window"), {QStringLiteral("F9"), Qt::WindowShortcut}},
-     {QStringLiteral("Save to Oldest Slot"),      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+C"), Qt::WindowShortcut}},
-     {QStringLiteral("Load from Newest Slot"),    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+V"), Qt::WindowShortcut}},
+     {QStringLiteral("Toggle Alternate Speed"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Frame Advancing"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Screen Layout"),     QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::WindowShortcut}},
-     {QStringLiteral("Toggle Alternate Speed"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Texture Dumping"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+D"), Qt::ApplicationShortcut}}}};
 // clang-format on
@@ -284,8 +284,6 @@ void Config::ReadUtilityValues() {
         ReadSetting(QStringLiteral("custom_textures"), false).toBool();
     Settings::values.preload_textures =
         ReadSetting(QStringLiteral("preload_textures"), false).toBool();
-    Settings::values.use_disk_shader_cache =
-        ReadSetting(QStringLiteral("use_disk_shader_cache"), true).toBool();
 
     qt_config->endGroup();
 }
@@ -478,8 +476,10 @@ void Config::ReadRendererValues() {
         ReadSetting(QStringLiteral("separable_shader"), false).toBool();
 #endif
     Settings::values.shaders_accurate_mul =
-        ReadSetting(QStringLiteral("shaders_accurate_mul"), false).toBool();
+        ReadSetting(QStringLiteral("shaders_accurate_mul"), true).toBool();
     Settings::values.use_shader_jit = ReadSetting(QStringLiteral("use_shader_jit"), true).toBool();
+    Settings::values.use_disk_shader_cache =
+        ReadSetting(QStringLiteral("use_disk_shader_cache"), true).toBool();
     Settings::values.use_vsync_new = ReadSetting(QStringLiteral("use_vsync_new"), true).toBool();
     Settings::values.resolution_factor =
         static_cast<u16>(ReadSetting(QStringLiteral("resolution_factor"), 1).toInt());
@@ -526,11 +526,12 @@ void Config::ReadSystemValues() {
     Settings::values.is_new_3ds = ReadSetting(QStringLiteral("is_new_3ds"), true).toBool();
     Settings::values.region_value =
         ReadSetting(QStringLiteral("region_value"), Settings::REGION_VALUE_AUTO_SELECT).toInt();
-    Settings::values.init_clock = static_cast<Settings::InitClock>(
+    //RTC_Hijack - Override init_clock
+    /*Settings::values.init_clock = static_cast<Settings::InitClock>(
         ReadSetting(QStringLiteral("init_clock"), static_cast<u32>(Settings::InitClock::SystemTime))
-            .toInt());
-    Settings::values.init_time =
-        ReadSetting(QStringLiteral("init_time"), 946681277ULL).toULongLong();
+            .toInt());*/
+    Settings::values.init_clock = Settings::InitClock::FixedTime;
+    Settings::values.init_time = ReadSetting(QStringLiteral("init_time"), 946681277ULL).toULongLong();
 
     qt_config->endGroup();
 }
@@ -834,8 +835,6 @@ void Config::SaveUtilityValues() {
     WriteSetting(QStringLiteral("dump_textures"), Settings::values.dump_textures, false);
     WriteSetting(QStringLiteral("custom_textures"), Settings::values.custom_textures, false);
     WriteSetting(QStringLiteral("preload_textures"), Settings::values.preload_textures, false);
-    WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,
-                 true);
 
     qt_config->endGroup();
 }
@@ -981,8 +980,10 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("use_separable_shader"), Settings::values.separable_shader, false);
 #endif
     WriteSetting(QStringLiteral("shaders_accurate_mul"), Settings::values.shaders_accurate_mul,
-                 false);
+                 true);
     WriteSetting(QStringLiteral("use_shader_jit"), Settings::values.use_shader_jit, true);
+    WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,
+                 true);
     WriteSetting(QStringLiteral("use_vsync_new"), Settings::values.use_vsync_new, true);
     WriteSetting(QStringLiteral("resolution_factor"), Settings::values.resolution_factor, 1);
     WriteSetting(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
@@ -1028,8 +1029,14 @@ void Config::SaveSystemValues() {
     WriteSetting(QStringLiteral("is_new_3ds"), Settings::values.is_new_3ds, true);
     WriteSetting(QStringLiteral("region_value"), Settings::values.region_value,
                  Settings::REGION_VALUE_AUTO_SELECT);
+    //Vanguard_Hijack - Override init_clock
+    /*
     WriteSetting(QStringLiteral("init_clock"), static_cast<u32>(Settings::values.init_clock),
-                 static_cast<u32>(Settings::InitClock::SystemTime));
+        static_cast<u32>(Settings::InitClock::SystemTime));
+        */
+    WriteSetting(QStringLiteral("init_clock"), static_cast<u32>(Settings::InitClock::FixedTime),
+                 static_cast<u32>(Settings::InitClock::FixedTime));
+
     WriteSetting(QStringLiteral("init_time"),
                  static_cast<unsigned long long>(Settings::values.init_time), 946681277ULL);
 

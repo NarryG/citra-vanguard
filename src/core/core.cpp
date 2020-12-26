@@ -24,6 +24,8 @@
 #ifdef ENABLE_FFMPEG_VIDEO_DUMPER
 #include "core/dumping/ffmpeg_backend.h"
 #endif
+#include <vanguardwrapper/UnmanagedWrapper.h>
+
 #include "core/custom_tex_cache.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/global.h"
@@ -31,6 +33,8 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/service/apt/applet_manager.h"
+#include "core/hle/service/apt/apt.h"
 #include "core/hle/service/fs/archive.h"
 #include "core/hle/service/gsp/gsp.h"
 #include "core/hle/service/pm/pm_app.h"
@@ -113,6 +117,7 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
         LOG_INFO(Core, "Begin load");
         try {
             System::LoadState(param);
+            UnmanagedWrapper::VANGUARD_LOADSTATE_DONE();
             LOG_INFO(Core, "Load completed");
         } catch (const std::exception& e) {
             LOG_ERROR(Core, "Error loading: {}", e.what());
@@ -122,10 +127,25 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
         frame_limiter.WaitOnce();
         return ResultStatus::Success;
     }
+    case Signal::LoadVanguard: {
+        LOG_INFO(Core, "Begin loadvanguard");
+        try {
+            System::LoadState(param);
+            UnmanagedWrapper::VANGUARD_LOADSTATE_DONE();
+            LOG_INFO(Core, "Load completed");
+        } catch (const std::exception& e) {
+            LOG_ERROR(Core, "Error loading: {}", e.what());
+            status_details = e.what();
+            return ResultStatus::ErrorSavestate;
+        }
+        frame_limiter.WaitOnce();
+        return ResultStatus::Success_Pause;
+    }
     case Signal::Save: {
         LOG_INFO(Core, "Begin save");
         try {
             System::SaveState(param);
+            UnmanagedWrapper::VANGUARD_SAVESTATE_DONE();
             LOG_INFO(Core, "Save completed");
         } catch (const std::exception& e) {
             LOG_ERROR(Core, "Error saving: {}", e.what());
@@ -561,9 +581,20 @@ void System::Reset() {
     // reloading.
     // TODO: Properly implement the reset
 
+    // Since the system is completely reinitialized, we'll have to store the deliver arg manually.
+    boost::optional<Service::APT::AppletManager::DeliverArg> deliver_arg;
+    if (auto apt = Service::APT::GetModule(*this)) {
+        deliver_arg = apt->GetAppletManager()->ReceiveDeliverArg();
+    }
+
     Shutdown();
     // Reload the system with the same setting
     Load(*m_emu_window, m_filepath);
+
+    // Restore the deliver arg.
+    if (auto apt = Service::APT::GetModule(*this)) {
+        apt->GetAppletManager()->SetDeliverArg(std::move(deliver_arg));
+    }
 }
 
 template <class Archive>

@@ -234,7 +234,7 @@
          <widget class="QComboBox" name="combo_init_clock">
           <item>
            <property name="text">
-            <string>System Clock</string>
+            <string>UNSUPPORTED</string>
            </property>
           </item>
           <item>

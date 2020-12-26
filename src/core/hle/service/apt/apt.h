@@ -65,19 +65,36 @@ public:
     explicit Module(Core::System& system);
     ~Module();
 
+    std::shared_ptr<AppletManager> GetAppletManager() const;
+
     class NSInterface : public ServiceFramework<NSInterface> {
     public:
         NSInterface(std::shared_ptr<Module> apt, const char* name, u32 max_session);
         ~NSInterface();
 
+        std::shared_ptr<Module> GetModule() const;
+
     protected:
         std::shared_ptr<Module> apt;
+
+        /**
+         * NS::SetWirelessRebootInfo service function. This sets the wireless reboot info.
+         * Inputs:
+         *     1 : size
+         *     2 : (Size<<14) | 2
+         *     3 : Wireless reboot info buffer ptr
+         * Outputs:
+         *     0 : Result of function, 0 on success, otherwise error code
+         */
+        void SetWirelessRebootInfo(Kernel::HLERequestContext& ctx);
     };
 
     class APTInterface : public ServiceFramework<APTInterface> {
     public:
         APTInterface(std::shared_ptr<Module> apt, const char* name, u32 max_session);
         ~APTInterface();
+
+        std::shared_ptr<Module> GetModule() const;
 
     protected:
         /**
@@ -138,6 +155,16 @@ public:
          *      5 : Output buffer address
          */
         void Unwrap(Kernel::HLERequestContext& ctx);
+
+        /**
+         * APT::GetWirelessRebootInfo service function
+         *  Inputs:
+         *      1 : size
+         *  Outputs:
+         *      1 : Result of function, 0 on success, otherwise error code
+         *      2 : Output parameter buffer ptr
+         */
+        void GetWirelessRebootInfo(Kernel::HLERequestContext& ctx);
 
         /**
          * APT::NotifyToWait service function
@@ -485,6 +512,23 @@ public:
         void GetProgramIdOnApplicationJump(Kernel::HLERequestContext& ctx);
 
         /**
+         * APT::ReceiveDeliverArg service function
+         *  Inputs:
+         *      0 : Command header [0x00350080]
+         *      1 : Parameter Size (capped to 0x300)
+         *      2 : HMAC Size (capped to 0x20)
+         *     64 : (Parameter Size << 14) | 2
+         *     65 : Output buffer for Parameter
+         *     66 : (HMAC Size << 14) | 0x802
+         *     67 : Output buffer for HMAC
+         *  Outputs:
+         *      1 : Result of function, 0 on success, otherwise error code
+         *    2-3 : Source program id
+         *      4 : u8, whether the arg is received (0 = not received, 1 = received)
+         */
+        void ReceiveDeliverArg(Kernel::HLERequestContext& ctx);
+
+        /**
          * APT::CancelLibraryApplet service function
          *  Inputs:
          *      0 : Command header [0x003B0040]
@@ -697,13 +741,18 @@ private:
 
     std::shared_ptr<AppletManager> applet_manager;
 
+    std::vector<u8> wireless_reboot_info;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int);
     friend class boost::serialization::access;
 };
+
+std::shared_ptr<Module> GetModule(Core::System& system);
 
 void InstallInterfaces(Core::System& system);
 
 } // namespace Service::APT
 
 SERVICE_CONSTRUCT(Service::APT::Module)
+BOOST_CLASS_VERSION(Service::APT::Module, 1)

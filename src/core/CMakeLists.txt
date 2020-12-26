@@ -234,6 +234,7 @@ add_library(core STATIC
     hle/service/cam/cam.h
     hle/service/cam/cam_c.cpp
     hle/service/cam/cam_c.h
+    hle/service/cam/cam_params.h
     hle/service/cam/cam_q.cpp
     hle/service/cam/cam_q.h
     hle/service/cam/cam_s.cpp
@@ -471,7 +472,7 @@ endif()
 
 create_target_directory_groups(core)
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core)
+target_link_libraries(core PUBLIC vanguardwrapper common PRIVATE audio_core network video_core )
 target_link_libraries(core PUBLIC Boost::boost PRIVATE cryptopp fmt open_source_archives Boost::serialization)
 
 if (ENABLE_WEB_SERVICE)

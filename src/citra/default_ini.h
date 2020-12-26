@@ -115,7 +115,7 @@ use_hw_shader =
 separable_shader =
 
 # Whether to use accurate multiplication in hardware shaders
-# 0: Off (Default. Faster, but causes issues in some games) 1: On (Slower, but correct)
+# 0: Off (Faster, but causes issues in some games) 1: On (Default. Slower, but correct)
 shaders_accurate_mul =
 
 # Whether to use the Just-In-Time (JIT) compiler for shader emulation
@@ -159,7 +159,7 @@ bg_blue =
 bg_green =
 
 # Whether and how Stereoscopic 3D should be rendered
-# 0 (default): Off, 1: Side by Side, 2: Anaglyph, 3: Interlaced
+# 0 (default): Off, 1: Side by Side, 2: Anaglyph, 3: Interlaced, 4: Reverse Interlaced
 render_3d =
 
 # Change 3D Intensity

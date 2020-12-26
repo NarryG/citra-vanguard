@@ -171,6 +171,11 @@
             <string>Interlaced</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Reverse Interlaced</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -290,13 +295,6 @@
       <string>Utility</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_8">
-      <item>
-       <widget class="QCheckBox" name="toggle_disk_shader_cache">
-        <property name="text">
-         <string>Use Disk Shader Cache</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QCheckBox" name="toggle_custom_textures">
         <property name="toolTip">

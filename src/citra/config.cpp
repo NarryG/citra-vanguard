@@ -119,7 +119,7 @@ void Config::ReadValues() {
         sdl2_config->GetBoolean("Renderer", "separable_shader", false);
 #endif
     Settings::values.shaders_accurate_mul =
-        sdl2_config->GetBoolean("Renderer", "shaders_accurate_mul", false);
+        sdl2_config->GetBoolean("Renderer", "shaders_accurate_mul", true);
     Settings::values.use_shader_jit = sdl2_config->GetBoolean("Renderer", "use_shader_jit", true);
     Settings::values.resolution_factor =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "resolution_factor", 1));
@@ -143,7 +143,8 @@ void Config::ReadValues() {
     std::string default_shader = "none (builtin)";
     if (Settings::values.render_3d == Settings::StereoRenderOption::Anaglyph)
         default_shader = "dubois (builtin)";
-    else if (Settings::values.render_3d == Settings::StereoRenderOption::Interlaced)
+    else if (Settings::values.render_3d == Settings::StereoRenderOption::Interlaced ||
+             Settings::values.render_3d == Settings::StereoRenderOption::ReverseInterlaced)
         default_shader = "horizontal (builtin)";
     Settings::values.pp_shader_name =
         sdl2_config->GetString("Renderer", "pp_shader_name", default_shader);

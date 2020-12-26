@@ -7,6 +7,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QTimer>
 #include "citra_qt/debugger/profiler.h"
 #include "citra_qt/util/util.h"
 #include "common/common_types.h"
@@ -108,8 +109,7 @@ MicroProfileWidget::MicroProfileWidget(QWidget* parent) : QWidget(parent) {
     MicroProfileSetDisplayMode(1); // Timers screen
     MicroProfileInitUI();
 
-    connect(&update_timer, &QTimer::timeout, this,
-            static_cast<void (MicroProfileWidget::*)()>(&MicroProfileWidget::update));
+    connect(&update_timer, &QTimer::timeout, this, qOverload<>(&MicroProfileWidget::update));
 }
 
 void MicroProfileWidget::paintEvent(QPaintEvent* ev) {
